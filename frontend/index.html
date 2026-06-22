@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Refund Support Agent</title>
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #0a0e14;
+    color: #e6edf3;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+  }
+
+  /* ============ LEFT PANEL: CHAT ============ */
+  #chat-panel {
+    width: 55%;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #1c2330;
+    background: #0d1219;
+  }
+
+  #chat-header {
+    padding: 18px 22px;
+    background: linear-gradient(180deg, #131a24 0%, #0d1219 100%);
+    border-bottom: 1px solid #1c2330;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  #chat-header .title {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+
+  #chat-header .subtitle {
+    font-size: 12px;
+    color: #6b7785;
+    margin-top: 2px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2ea043;
+    box-shadow: 0 0 8px #2ea043;
+    display: inline-block;
+    margin-right: 6px;
+  }
+
+  #voice-toggle-wrap {
+    font-size: 12px;
+    color: #8b96a5;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  #messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+  }
+
+  .msg-row {
+    display: flex;
+    margin-bottom: 14px;
+  }
+
+  .msg-row.user { justify-content: flex-end; }
+
+  .msg {
+    padding: 11px 15px;
+    border-radius: 12px;
+    max-width: 75%;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .user-msg {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border-bottom-right-radius: 3px;
+    color: white;
+  }
+
+  .agent-msg {
+    background: #161d29;
+    border: 1px solid #232b3a;
+    border-bottom-left-radius: 3px;
+  }
+
+  .msg-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #5b6675;
+    margin-bottom: 4px;
+  }
+
+  #input-row {
+    display: flex;
+    padding: 16px;
+    border-top: 1px solid #1c2330;
+    background: #0d1219;
+    gap: 8px;
+  }
+
+  #user-input {
+    flex: 1;
+    padding: 12px 14px;
+    background: #131a24;
+    border: 1px solid #232b3a;
+    border-radius: 8px;
+    color: #e6edf3;
+    font-size: 14px;
+    outline: none;
+  }
+
+  #user-input:focus {
+    border-color: #2563eb;
+  }
+
+  #mic-btn, #send-btn {
+    padding: 0 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: transform 0.1s ease, background 0.2s ease;
+  }
+
+  #mic-btn {
+    background: #1b2330;
+    border: 1px solid #2a3344;
+    color: #e6edf3;
+  }
+
+  #mic-btn:hover { background: #232b3a; }
+
+  #mic-btn.listening {
+    background: #b91c1c;
+    border-color: #ef4444;
+    animation: pulse 1.1s infinite;
+  }
+
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+    70%  { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
+    100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+  }
+
+  #send-btn {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 0 22px;
+  }
+
+  #send-btn:hover { transform: translateY(-1px); }
+
+  /* ============ RIGHT PANEL: ADMIN LOG ============ */
+  #admin-panel {
+    width: 45%;
+    display: flex;
+    flex-direction: column;
+    background: #090d13;
+  }
+
+  #admin-header {
+    padding: 18px 22px;
+    background: linear-gradient(180deg, #131a24 0%, #0d1219 100%);
+    border-bottom: 1px solid #1c2330;
+  }
+
+  #admin-header .title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  #admin-header .subtitle {
+    font-size: 12px;
+    color: #6b7785;
+    margin-top: 2px;
+  }
+
+  #log-list {
+    flex: 1;
+    padding: 18px;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12.5px;
+  }
+
+.log-entry {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: #10151f;
+  border-left: 3px solid #2563eb;
+  border-radius: 0 6px 6px 0;
+  color: #b8c2d0;
+  word-break: break-word;
+  animation: slideIn 0.25s ease;
+}
+
+/* ADD THIS NEW RULE HERE */
+.log-entry.audit-line {
+  border-left-color: #16a34a;
+  background: #0f1f15;
+  font-weight: 600;
+  color: #d1fae5;
+}
+
+.log-entry.tool-call { border-left-color: #f59e0b; }
+.log-entry.tool-result { border-left-color: #2563eb; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(8px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .log-empty {
+    color: #4b5563;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 40px;
+  }
+
+  /* scrollbars */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #232b3a; border-radius: 8px; }
+</style>
+</head>
+<body>
+
+  <!-- LEFT: CUSTOMER CHAT -->
+  <div id="chat-panel">
+    <div id="chat-header">
+      <div>
+        <div class="title"><span class="status-dot"></span>Customer Support</div>
+        <div class="subtitle">Ask about a refund — type or speak</div>
+      </div>
+      <label id="voice-toggle-wrap">
+        <input type="checkbox" id="voice-toggle" checked />
+        Voice replies
+      </label>
+    </div>
+
+    <div id="messages"></div>
+
+    <div id="input-row">
+      <input id="user-input" type="text" placeholder="e.g. I want a refund for order O001, customer C001" />
+      <button id="mic-btn" onclick="toggleListening()" title="Click to speak">🎤</button>
+      <button id="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: ADMIN REASONING LOG -->
+  <div id="admin-panel">
+    <div id="admin-header">
+      <div class="title">Admin — Agent Reasoning</div>
+      <div class="subtitle">Live tool calls &amp; decisions</div>
+    </div>
+    <div id="log-list">
+      <div class="log-empty" id="log-empty-msg">No activity yet. Send a message to see the agent think.</div>
+    </div>
+  </div>
+
+<script>
+  const API_URL = "http://127.0.0.1:8000/chat";
+  const sessionId = "session_" + Date.now();
+
+  // ───────────────────────── Chat rendering ─────────────────────────
+  function addMessage(text, sender) {
+    const messagesDiv = document.getElementById("messages");
+
+    const row = document.createElement("div");
+    row.className = "msg-row " + sender;
+
+    const msg = document.createElement("div");
+    msg.className = "msg " + (sender === "user" ? "user-msg" : "agent-msg");
+
+    const label = document.createElement("div");
+    label.className = "msg-label";
+    label.textContent = sender === "user" ? "You" : "Agent";
+
+    msg.appendChild(label);
+    const body = document.createElement("div");
+    body.textContent = text;
+    msg.appendChild(body);
+
+    row.appendChild(msg);
+    messagesDiv.appendChild(row);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  function addLogEntry(text) {
+  const emptyMsg = document.getElementById("log-empty-msg");
+  if (emptyMsg) emptyMsg.remove();
+
+  const logList = document.getElementById("log-list");
+  const entry = document.createElement("div");
+
+  let cls = "log-entry";
+  if (text.startsWith("📋 AUDIT")) cls += " audit-line";
+  else if (text.startsWith("Ran ") || text.startsWith("✅")) cls += " tool-result";
+  else if (text.startsWith("Agent decided")) cls += " tool-call";
+
+  entry.className = cls;
+  entry.textContent = text;
+  logList.appendChild(entry);
+  logList.scrollTop = logList.scrollHeight;
+}
+  // ───────────────────────── Send message to backend ─────────────────
+  async function sendMessage(silentMessage) {
+  const input = document.getElementById("user-input");
+  const message = silentMessage || input.value.trim();
+  if (!message) return;
+
+  // Don't show the auto-continue trigger as a visible user bubble
+  if (!silentMessage) {
+    addMessage(message, "user");
+  }
+  input.value = "";
+
+  const response = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId, message: message }),
+  });
+
+  const data = await response.json();
+
+  addMessage(data.reply, "agent");
+  speak(data.reply);
+
+  data.reasoning_log.forEach(line => addLogEntry(line));
+
+  // If the agent said it's checking something, auto-continue after a pause
+  // so the customer doesn't have to type anything to "wait."
+  const waitingPhrases = ["one moment", "please wait", "checking our refund policy", "let me check"];
+  const isWaiting = waitingPhrases.some(p => data.reply.toLowerCase().includes(p));
+
+  if (isWaiting) {
+    setTimeout(() => {
+      sendMessage("continue"); // quiet, invisible trigger message
+    }, 2000); // 2 second pause, feels natural
+  }
+}
+  document.getElementById("user-input").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") sendMessage();
+  });
+
+  // ───────────────────────── Voice INPUT (speech-to-text) ────────────
+  let recognition = null;
+  let isListening = false;
+
+  function setupSpeechRecognition() {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert("Voice input isn't supported in this browser. Please use Chrome or Edge.");
+      return null;
+    }
+
+    const recog = new webkitSpeechRecognition();
+    recog.continuous = false;
+    recog.interimResults = false;
+    recog.lang = "en-US";
+
+    recog.onresult = function(event) {
+      const transcript = event.results[0][0].transcript;
+      document.getElementById("user-input").value = transcript;
+      sendMessage();
+    };
+
+    recog.onerror = function(event) {
+      console.error("Speech recognition error:", event.error);
+      stopListening();
+    };
+
+    recog.onend = function() {
+      stopListening();
+    };
+
+    return recog;
+  }
+
+  function toggleListening() {
+    if (isListening) {
+      stopListening();
+      return;
+    }
+    recognition = setupSpeechRecognition();
+    if (!recognition) return;
+
+    recognition.start();
+    isListening = true;
+    document.getElementById("mic-btn").classList.add("listening");
+  }
+
+  function stopListening() {
+    if (recognition) recognition.stop();
+    isListening = false;
+    document.getElementById("mic-btn").classList.remove("listening");
+  }
+
+  // ───────────────────────── Voice OUTPUT (text-to-speech) ───────────
+  function speak(text) {
+    const voiceEnabled = document.getElementById("voice-toggle").checked;
+    if (!voiceEnabled) return;
+
+    window.speechSynthesis.cancel(); // stop any reply currently being spoken
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    window.speechSynthesis.speak(utterance);
+  }
+</script>
+
+</body>
+</html>
