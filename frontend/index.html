@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AI Refund Support Agent</title>
+<title>RefundDesk — AI Customer Support</title>
 <style>
   * { box-sizing: border-box; }
 
@@ -13,6 +13,81 @@
     margin: 0;
     height: 100vh;
     display: flex;
+    flex-direction: column;
+  }
+
+  /* ============ TOP BRANDED HEADER ============ */
+  #app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: linear-gradient(180deg, #0f1620 0%, #0a0e14 100%);
+    border-bottom: 1px solid #1c2330;
+    flex-shrink: 0;
+  }
+
+  #brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  #brand-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #2563eb, #16a34a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+  }
+
+  #brand-text .name {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    color: #e6edf3;
+  }
+
+  #brand-text .tagline {
+    font-size: 11px;
+    color: #6b7785;
+    margin-top: 1px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+  #header-meta {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 12px;
+    color: #8b96a5;
+  }
+
+  #header-meta .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  #header-meta .meta-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #2ea043;
+    box-shadow: 0 0 6px #2ea043;
+  }
+
+  /* ============ MAIN BODY (chat + admin row) ============ */
+  #main-body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
   }
 
   /* ============ LEFT PANEL: CHAT ============ */
@@ -201,27 +276,26 @@
     font-size: 12.5px;
   }
 
-.log-entry {
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  background: #10151f;
-  border-left: 3px solid #2563eb;
-  border-radius: 0 6px 6px 0;
-  color: #b8c2d0;
-  word-break: break-word;
-  animation: slideIn 0.25s ease;
-}
+  .log-entry {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: #10151f;
+    border-left: 3px solid #2563eb;
+    border-radius: 0 6px 6px 0;
+    color: #b8c2d0;
+    word-break: break-word;
+    animation: slideIn 0.25s ease;
+  }
 
-/* ADD THIS NEW RULE HERE */
-.log-entry.audit-line {
-  border-left-color: #16a34a;
-  background: #0f1f15;
-  font-weight: 600;
-  color: #d1fae5;
-}
+  .log-entry.audit-line {
+    border-left-color: #16a34a;
+    background: #0f1f15;
+    font-weight: 600;
+    color: #d1fae5;
+  }
 
-.log-entry.tool-call { border-left-color: #f59e0b; }
-.log-entry.tool-result { border-left-color: #2563eb; }
+  .log-entry.tool-call { border-left-color: #f59e0b; }
+  .log-entry.tool-result { border-left-color: #2563eb; }
 
   @keyframes slideIn {
     from { opacity: 0; transform: translateX(8px); }
@@ -243,38 +317,64 @@
 </head>
 <body>
 
-  <!-- LEFT: CUSTOMER CHAT -->
-  <div id="chat-panel">
-    <div id="chat-header">
-      <div>
-        <div class="title"><span class="status-dot"></span>Customer Support</div>
-        <div class="subtitle">Ask about a refund — type or speak</div>
+  <!-- TOP BRANDED HEADER -->
+  <div id="app-header">
+    <div id="brand">
+      <div id="brand-logo">R</div>
+      <div id="brand-text">
+        <div class="name">RefundDesk</div>
+        <div class="tagline">AI Customer Support</div>
       </div>
-      <label id="voice-toggle-wrap">
-        <input type="checkbox" id="voice-toggle" checked />
-        Voice replies
-      </label>
     </div>
-
-    <div id="messages"></div>
-
-    <div id="input-row">
-      <input id="user-input" type="text" placeholder="e.g. I want a refund for order O001, customer C001" />
-      <button id="mic-btn" onclick="toggleListening()" title="Click to speak">🎤</button>
-      <button id="send-btn" onclick="sendMessage()">Send</button>
+    <div id="header-meta">
+      <div class="meta-item">
+        <span class="meta-dot"></span>
+        <span>Agent online</span>
+      </div>
+      <div class="meta-item">
+        <span>Powered by GPT-4o · LangGraph</span>
+      </div>
     </div>
   </div>
 
-  <!-- RIGHT: ADMIN REASONING LOG -->
-  <div id="admin-panel">
-    <div id="admin-header">
-      <div class="title">Admin — Agent Reasoning</div>
-      <div class="subtitle">Live tool calls &amp; decisions</div>
+  <!-- MAIN BODY: CHAT + ADMIN -->
+  <div id="main-body">
+
+    <!-- LEFT: CUSTOMER CHAT -->
+    <div id="chat-panel">
+      <div id="chat-header">
+        <div>
+          <div class="title"><span class="status-dot"></span>Customer Support</div>
+          <div class="subtitle">Ask about a refund — type or speak</div>
+        </div>
+        <label id="voice-toggle-wrap">
+          <input type="checkbox" id="voice-toggle" checked />
+          Voice replies
+        </label>
+      </div>
+
+      <div id="messages"></div>
+
+      <div id="input-row">
+        <input id="user-input" type="text" placeholder="e.g. I want a refund for order O001, customer C001" />
+        <button id="mic-btn" onclick="toggleListening()" title="Click to speak">🎤</button>
+        <button id="send-btn" onclick="sendMessage()">Send</button>
+      </div>
     </div>
-    <div id="log-list">
-      <div class="log-empty" id="log-empty-msg">No activity yet. Send a message to see the agent think.</div>
+
+    <!-- RIGHT: ADMIN REASONING LOG -->
+    <div id="admin-panel">
+      <div id="admin-header">
+        <div class="title">Admin — Agent Reasoning</div>
+        <div class="subtitle">Live tool calls &amp; decisions</div>
+      </div>
+      <div id="log-list">
+        <div class="log-empty" id="log-empty-msg">No activity yet. Send a message to see the agent think.</div>
+      </div>
     </div>
+
   </div>
+  <!-- end main-body -->
 
 <script>
   const API_URL = "http://127.0.0.1:8000/chat";
@@ -305,58 +405,60 @@
   }
 
   function addLogEntry(text) {
-  const emptyMsg = document.getElementById("log-empty-msg");
-  if (emptyMsg) emptyMsg.remove();
+    const emptyMsg = document.getElementById("log-empty-msg");
+    if (emptyMsg) emptyMsg.remove();
 
-  const logList = document.getElementById("log-list");
-  const entry = document.createElement("div");
+    const logList = document.getElementById("log-list");
+    const entry = document.createElement("div");
 
-  let cls = "log-entry";
-  if (text.startsWith("📋 AUDIT")) cls += " audit-line";
-  else if (text.startsWith("Ran ") || text.startsWith("✅")) cls += " tool-result";
-  else if (text.startsWith("Agent decided")) cls += " tool-call";
+    // Color-code based on what kind of log line this is
+    let cls = "log-entry";
+    if (text.startsWith("📋 AUDIT")) cls += " audit-line";
+    else if (text.startsWith("Ran ") || text.startsWith("✅")) cls += " tool-result";
+    else if (text.startsWith("Agent decided")) cls += " tool-call";
 
-  entry.className = cls;
-  entry.textContent = text;
-  logList.appendChild(entry);
-  logList.scrollTop = logList.scrollHeight;
-}
+    entry.className = cls;
+    entry.textContent = text;
+    logList.appendChild(entry);
+    logList.scrollTop = logList.scrollHeight;
+  }
+
   // ───────────────────────── Send message to backend ─────────────────
   async function sendMessage(silentMessage) {
-  const input = document.getElementById("user-input");
-  const message = silentMessage || input.value.trim();
-  if (!message) return;
+    const input = document.getElementById("user-input");
+    const message = silentMessage || input.value.trim();
+    if (!message) return;
 
-  // Don't show the auto-continue trigger as a visible user bubble
-  if (!silentMessage) {
-    addMessage(message, "user");
+    // Don't show the auto-continue trigger as a visible user bubble
+    if (!silentMessage) {
+      addMessage(message, "user");
+    }
+    input.value = "";
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, message: message }),
+    });
+
+    const data = await response.json();
+
+    addMessage(data.reply, "agent");
+    speak(data.reply);
+
+    data.reasoning_log.forEach(line => addLogEntry(line));
+
+    // If the agent said it's checking something, auto-continue after a pause
+    const waitingPhrases = ["one moment", "please wait", "checking our refund policy", "let me check"];
+    const isWaiting = waitingPhrases.some(p => data.reply.toLowerCase().includes(p));
+
+    if (isWaiting) {
+      setTimeout(() => {
+        sendMessage("continue");
+      }, 2000);
+    }
   }
-  input.value = "";
 
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ session_id: sessionId, message: message }),
-  });
-
-  const data = await response.json();
-
-  addMessage(data.reply, "agent");
-  speak(data.reply);
-
-  data.reasoning_log.forEach(line => addLogEntry(line));
-
-  // If the agent said it's checking something, auto-continue after a pause
-  // so the customer doesn't have to type anything to "wait."
-  const waitingPhrases = ["one moment", "please wait", "checking our refund policy", "let me check"];
-  const isWaiting = waitingPhrases.some(p => data.reply.toLowerCase().includes(p));
-
-  if (isWaiting) {
-    setTimeout(() => {
-      sendMessage("continue"); // quiet, invisible trigger message
-    }, 2000); // 2 second pause, feels natural
-  }
-}
   document.getElementById("user-input").addEventListener("keypress", function(e) {
     if (e.key === "Enter") sendMessage();
   });
@@ -418,7 +520,7 @@
     const voiceEnabled = document.getElementById("voice-toggle").checked;
     if (!voiceEnabled) return;
 
-    window.speechSynthesis.cancel(); // stop any reply currently being spoken
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "en-US";
     utterance.rate = 1.0;
